@@ -25,74 +25,45 @@ use ViaBill\Service\Provider\OrderStatusProvider;
 class PaymentManagementTemplate implements TemplateInterface
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'PaymentManagementTemplate';
-
-    /**
-     * Smarty Variable Declaration.
-     *
      * @var \Smarty
      */
     private $smarty;
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * Form Action Variable Declaration.
-     *
      * @var string
      */
     private $formAction;
 
     /**
-     * Configuration Variable Declaration.
-     *
      * @var Configuration
      */
     private $configuration;
 
     /**
-     * Order Status Provider Variable Declaration.
-     *
      * @var OrderStatusProvider
      */
     private $statusProvider;
 
     /**
-     * Order Variable Declaration.
-     *
      * @var Order
      */
     private $order;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
     /**
-     * Language Variable Declaration.
-     *
      * @var Language
      */
     private $language;
 
-    /**
-     * PaymentManagementTemplate constructor.
-     *
-     * @param \ViaBill $module
-     * @param Configuration $configuration
-     * @param OrderStatusProvider $statusProvider
-     * @param Tools $tools
-     */
     public function __construct(
         \ViaBill $module,
         Configuration $configuration,
@@ -106,8 +77,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Sets Smarty From Given Param.
-     *
      * @param \Smarty $smarty
      */
     public function setSmarty(\Smarty $smarty)
@@ -116,8 +85,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Sets Order From Given Param.
-     *
      * @param Order $order
      */
     public function setOrder(Order $order)
@@ -126,8 +93,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Sets Language From Given Param.
-     *
      * @param Language $language
      */
     public function setLanguage(Language $language)
@@ -136,8 +101,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Sets Form Action From Given Param.
-     *
      * @param string $formAction
      */
     public function setFormAction($formAction)
@@ -146,8 +109,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Gets Smarty Params.
-     *
      * @return array
      */
     public function getSmartyParams()
@@ -169,9 +130,9 @@ class PaymentManagementTemplate implements TemplateInterface
                     'cancelConfirmation' => $this->configuration->get(Config::SINGLE_ACTION_CANCEL_CONF_MESSAGE),
                 ],
                 'captureFormGroup' => [
-                    'isVisible' => $this->isCaptureVisible(),
-                    'captureConfirmation' => $this->configuration->get(Config::SINGLE_ACTION_CAPTURE_CONF_MESSAGE),
+                    'isVisible' => $this->isCaptureVisible(),                
                     'remainingToCapture' => $this->getRemainingToCapture($this->order->total_paid_tax_incl),
+                    'captureConfirmation' => $this->configuration->get(Config::SINGLE_ACTION_CAPTURE_CONF_MESSAGE),
                 ],
                 'refundFormGroup' => [
                     'isVisible' => $this->isRefundVisible(),
@@ -186,8 +147,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Gets Smarty Payment Management HTML Template.
-     *
      * @return string
      *
      * @throws \SmartyException
@@ -202,8 +161,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Gets Remaining Price To Capture.
-     *
      * @param float $orderTotal
      *
      * @return float
@@ -220,8 +177,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks If Cancel Action Is Visible.
-     *
      * @return bool
      */
     private function isCancelVisible()
@@ -230,8 +185,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks If Refund Action Is Visible.
-     *
      * @return bool
      */
     private function isRefundVisible()
@@ -240,8 +193,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks If Renew Action Is Visible.
-     *
      * @return bool
      */
     private function isRenewVisible()
@@ -250,8 +201,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks If Capture Action Is Visible.
-     *
      * @return bool
      */
     private function isCaptureVisible()
@@ -260,8 +209,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks If Performed Refund Is Full Refund.
-     *
      * @return bool
      *
      * @throws \PrestaShopDatabaseException
@@ -285,8 +232,6 @@ class PaymentManagementTemplate implements TemplateInterface
     }
 
     /**
-     * Checks Currency.
-     *
      * @return string
      *
      * @throws \PrestaShopDatabaseException
@@ -301,11 +246,12 @@ class PaymentManagementTemplate implements TemplateInterface
         if ((int) $this->order->id_currency !== (int) $orderMark->id_currency) {
             $currency = new Currency($orderMark->id_currency, $this->language->id);
 
-            $message =
-                sprintf(
-                    $this->module->l('For current order, only %s is supported currency.', self::FILENAME),
-                    $currency->name
-                );
+            $message = sprintf(
+                $this->module->l(
+                    'For the current order, only %s is a supported currency.'                    
+                ),
+                $currency->name
+            );
         }
 
         return $message;

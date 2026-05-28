@@ -54,9 +54,9 @@ class AdminViaBillConflictController extends ModuleAdminController
      * @throws PrestaShopException
      */
     private function disableThirdPartyPaymentMethod()
-    {
-        if ($this->token !== Tools::getValue('token')) {
-            $this->ajaxDie($this->l('Form token mismatch detected.'));
+    {        
+        if (Tools::getAdminTokenLite('AdminViaBillConflict') !== Tools::getValue('token')) {        
+            $this->ajaxResponse($this->l('Form token mismatch detected.'));
         }
 
         $conflict_key = Config::MODULE_CONFLICT_THIRD_PARTY_KEY;
@@ -66,6 +66,19 @@ class AdminViaBillConflictController extends ModuleAdminController
         } else {
             $message = $this->l('The third party payment method could not be found!');
         }
-        $this->ajaxDie($message);
+        $this->ajaxResponse($message);
+    }
+
+    public function ajaxResponse($data)
+    {
+        die(is_string($data) ? $data : Tools::jsonEncode($data));
+    }
+
+    /*
+    Legacy wrapper for translation l method
+    */
+    public function l($string, $specific = false, $locale = null)
+    {
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
     }
 }

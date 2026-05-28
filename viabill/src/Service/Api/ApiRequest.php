@@ -1,58 +1,49 @@
 <?php
 /**
-* NOTICE OF LICENSE
-*
-* @author    Written for or by ViaBill
-* @copyright Copyright (c) Viabill
-* @license   Addons PrestaShop license limitation
-*
-* @see       /LICENSE
-*/
+ * NOTICE OF LICENSE
+ *
+ * @author    Written for or by ViaBill
+ * @copyright Copyright (c) Viabill
+ * @license   Addons PrestaShop license limitation
+ *
+ * @see       /LICENSE
+ */
 
 namespace ViaBill\Service\Api;
 
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\TransferStats;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use ViaBill\Adapter\Tools;
 use ViaBill\Factory\HttpClientFactory;
 use ViaBill\Object\Api\ApiResponse;
 use ViaBill\Object\Api\ApiResponseError;
-use ViaBill\Config\Config;
 
 /**
  * Class ApiRequest
+ *
+ *   - 4xx responses are decoded for structured `errors` payloads.
+ *   - 5xx responses and network failures produce a generic "service
+ *     unavailable" message (the body is intentionally not parsed for 5xx,
+ *     matching the original Guzzle RequestException branch).
+ *   - The returned ApiResponse carries (statusCode, body, errors, effectiveUrl).
  */
 class ApiRequest
 {
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * HTTP Client Factory Variable Declaration.
-     *
      * @var HttpClientFactory
      */
     private $clientFactory;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
-    /**
-     * ApiRequest constructor.
-     *
-     * @param \ViaBill $module
-     * @param HttpClientFactory $clientFactory
-     * @param Tools $tools
-     */
     public function __construct(\ViaBill $module, HttpClientFactory $clientFactory, Tools $tools)
     {
         $this->module = $module;
@@ -61,101 +52,95 @@ class ApiRequest
     }
 
     /**
-     * API Request Post Method.
+     * API Request POST.
      *
      * @param string $url
-     * @param array $params
+     * @param array  $params  Symfony HttpClient options: 'json', 'body',
+     *                        'headers', 'query', 'auth_basic', 'auth_bearer'...
      *
-     * @return ApiResponse|null
+     * @return ApiResponse
      */
     public function post($url, $params = [])
     {
-        $response = null;
-        $body = '';
-        $errors = [];
-        $effectiveUrl = $url;
-
-        try {
-            if (Config::isVersionAbove8()) {
-                // Use this method to retrieve the "effective URL"
-                // which could be the redirect URL
-                $params['on_stats'] = function (TransferStats $stats) use (&$effectiveUrl) {
-                    $effectiveUrl = $stats->getEffectiveUri();				               
-                };	
-            }
-
-            $response = $this->clientFactory->getClient()->post($url, $params);
-
-            if ($response->getBody()) {
-                $body = $response->getBody()->__toString();
-            }
-
-            $statusCode = $response->getStatusCode();            
-            if (!Config::isVersionAbove8()) {
-                $effectiveUrl = $response->getEffectiveUrl();
-            }
-        } catch (ClientException $clientException) {
-            $errorBody = $clientException->getResponse()->getBody() ?
-                $clientException->getResponse()->getBody()->__toString() :
-                '';
-
-            $statusCode = $clientException->getCode();
-            $errors = $this->getResponseErrors($errorBody, $clientException->getMessage());
-        } catch (RequestException $requestException) {
-            $statusCode = $requestException->getCode();
-            $errors = $this->getResponseErrors(
-                '',
-                $this->module->l('ViaBill service is down at the moment. Please wait and refresh the page or contact ViaBill support at merchants@viabill.com')
-            );
-        } catch (\Exception $exception) {
-            $statusCode = $exception->getCode();
-            $errors = $this->getResponseErrors('', $exception->getMessage());
-        }
-
-        return new ApiResponse($statusCode, $body, $errors, $effectiveUrl);
+        return $this->send('POST', $url, $params, true);
     }
 
     /**
-     * API Request Get Method.
+     * API Request GET.
      *
      * @param string $url
-     * @param array $options
+     * @param array  $options
      *
      * @return ApiResponse
      */
     public function get($url, $options = [])
     {
-        $response = null;
+        return $this->send('GET', $url, $options, false);
+    }
+
+    /**
+     * Shared request pipeline. Symfony HttpClient defers the actual HTTP call
+     * until the response is read (getStatusCode / getContent), so all reads
+     * happen inside the try block.
+     *
+     * @param string $method
+     * @param string $url
+     * @param array  $options
+     * @param bool   $trackEffectiveUrl  Only POST records it (matching legacy behavior).
+     *
+     * @return ApiResponse
+     */
+    private function send($method, $url, array $options, $trackEffectiveUrl)
+    {
         $body = '';
         $errors = [];
+        $statusCode = 0;
+        $effectiveUrl = $url;
+
+        // Strip any Guzzle-only options a legacy caller might still pass.
+        // Symfony HttpClient throws InvalidArgumentException on unknown keys.
+        unset($options['on_stats'], $options['allow_redirects'], $options['debug']);
 
         try {
-            $response = $this->clientFactory->getClient()->get($url, $options);
+            /** @var ResponseInterface $response */
+            $response = $this->clientFactory->getClient()->request($method, $url, $options);
 
-            if ($response->getBody()) {
-                $body = $response->getBody()->__toString();
+            // Touching getStatusCode() materializes the response. Neither this
+            // nor getContent(false) throw on non-2xx, which lets us read error
+            // bodies without try/catch gymnastics.
+            $statusCode = $response->getStatusCode();
+            $body = $response->getContent(false);
+
+            if ($trackEffectiveUrl) {
+                $info = $response->getInfo('url');
+                if (is_string($info) && $info !== '') {
+                    $effectiveUrl = $info;
+                }
             }
 
-            $statusCode = $response->getStatusCode();
-        } catch (ClientException $clientException) {
-            $errorBody = $clientException->getResponse()->getBody() ?
-                $clientException->getResponse()->getBody()->__toString() :
-                '';
-
-            $statusCode = $clientException->getCode();
-            $errors = $this->getResponseErrors($errorBody, $clientException->getMessage());
-        } catch (RequestException $requestException) {
-            $statusCode = $requestException->getCode();
-            $errors = $this->getResponseErrors(
-                '',
-                $this->module->l('ViaBill service is down at the moment. Please wait and refresh the page or contact ViaBill support at merchants@viabill.com')
-            );
+            if ($statusCode >= 400 && $statusCode < 500) {
+                // Was: catch (ClientException) — parse structured errors from the body.
+                $errors = $this->getResponseErrors(
+                    $body,
+                    sprintf('Client error: HTTP %d', $statusCode)
+                );
+            } elseif ($statusCode >= 500) {
+                // Was: catch (RequestException) for 5xx — generic message, body discarded.
+                $errors = $this->getResponseErrors('', $this->serviceUnavailableMessage());
+            }
+        } catch (TransportExceptionInterface $transportException) {
+            // Network-level: DNS failure, connection refused, TLS, timeout.
+            // Was: catch (RequestException) without response.
+            $statusCode = (int) $transportException->getCode();
+            $errors = $this->getResponseErrors('', $this->serviceUnavailableMessage());
         } catch (\Exception $exception) {
-            $statusCode = $exception->getCode();
+            $statusCode = (int) $exception->getCode();
             $errors = $this->getResponseErrors('', $exception->getMessage());
         }
 
-        return new ApiResponse($statusCode, $body, $errors);
+        return $trackEffectiveUrl
+            ? new ApiResponse($statusCode, $body, $errors, $effectiveUrl)
+            : new ApiResponse($statusCode, $body, $errors);
     }
 
     /**
@@ -169,9 +154,11 @@ class ApiRequest
     private function getResponseErrors($body, $exceptionMessage)
     {
         $normalizedBody = json_decode($body, true);
+
         if (empty($normalizedBody['errors']) || !isset($normalizedBody['errors'])) {
             return [new ApiResponseError('', $exceptionMessage)];
         }
+
         $errors = $normalizedBody['errors'];
         $result = [];
 
@@ -183,5 +170,15 @@ class ApiRequest
         }
 
         return $result;
+    }
+
+    /**
+     * @return string
+     */
+    private function serviceUnavailableMessage()
+    {
+        return $this->module->l(
+            'ViaBill service is currently unavailable. Please refresh the page in a moment or contact ViaBill support at merchants@viabill.com.'
+        );
     }
 }

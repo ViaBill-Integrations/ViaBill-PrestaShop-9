@@ -20,11 +20,6 @@ use ViaBill\Object\Api\ApiResponseError;
 abstract class OrderStatusApiService
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'OrderStatusApiService';
-
-    /**
      * Gets Order Status API Response With Formatted Errors.
      *
      * @param \ViaBill $module
@@ -39,12 +34,15 @@ abstract class OrderStatusApiService
         $errorBody = $apiResponse->getBody();
 
         if (!$errorBody) {
-            $errorBody =
-                sprintf(
-                    $module->l('An unexpected error occurred for order %s. Status code %s'),
-                    $transactionId,
-                    $apiResponse->getStatusCode()
-                );
+            $errorBody = sprintf(
+                $module->trans(
+                    'An unexpected error occurred for order %s. Status code: %s.',
+                    [],
+                    'Modules.Viabill.Admin'
+                ),
+                $transactionId,
+                $apiResponse->getStatusCode()
+            );
         }
 
         $apiError = new ApiResponseError('', $errorBody);
@@ -53,6 +51,10 @@ abstract class OrderStatusApiService
             $errors
         );
 
-        return new ApiResponse($apiResponse->getStatusCode(), $apiResponse->getBody(), $allErrors);
+        return new ApiResponse(
+            $apiResponse->getStatusCode(),
+            $apiResponse->getBody(),
+            $allErrors
+        );
     }
 }

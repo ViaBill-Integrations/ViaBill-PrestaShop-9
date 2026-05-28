@@ -1,6 +1,6 @@
 {
     "name": "viabill/viabill",    
-    "version": "9.1.2",
+    "version": "9.1.4",
     "type": "prestashop-module",
     "description": "ViaBill payment module for PrestaShop",
     "license": "OSL-3.0",

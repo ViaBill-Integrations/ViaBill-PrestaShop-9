@@ -24,84 +24,50 @@ use ViaBill\Service\UserService;
 use ViaBill\Util\DebugLog;
 use ViaBill\Util\SignaturesGenerator;
 
-/**
- * Class RefundPaymentHandler
- */
 class RefundPaymentHandler
 {
-    /**
-     * Filename Constant.
-     */
     const FILENAME = 'RefundPaymentHandler';
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * Validate Variable Declaration.
-     *
      * @var Validate
      */
     private $validate;
 
     /**
-     * Refund Service Variable Declaration.
-     *
      * @var RefundService
      */
     private $refundService;
 
     /**
-     * User Service Variable Declaration.
-     *
      * @var UserService
      */
     private $userService;
 
     /**
-     * Signature Generator Variable Declaration.
-     *
      * @var SignaturesGenerator
      */
     private $signaturesGenerator;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
     /**
-     * Logger Factory Variable Declaration.
-     *
      * @var LoggerFactory
      */
     private $loggerFactory;
 
     /**
-     * Configuration Variable Declaration.
-     *
      * @var Configuration
      */
     private $configuration;
 
-    /**
-     * RefundPaymentHandler constructor.
-     *
-     * @param \ViaBill $module
-     * @param Configuration $configuration
-     * @param LoggerFactory $loggerFactory
-     * @param Validate $validate
-     * @param Tools $tools
-     * @param RefundService $refundService
-     * @param UserService $userService
-     * @param SignaturesGenerator $signaturesGenerator
-     */
     public function __construct(
         \ViaBill $module,
         Configuration $configuration,
@@ -122,18 +88,9 @@ class RefundPaymentHandler
         $this->configuration = $configuration;
     }
 
-    /**
-     * Handles Payment Refund.
-     *
-     * @param Order $order
-     * @param float $amount
-     *
-     * @return HandlerResponse
-     */
     public function handle(Order $order, $amount)
     {
-        // debug info
-        $debug_str = (empty($order)) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
         DebugLog::msg("Refund Payment Handle / Amount: $amount Order: $debug_str", 'notice');
 
         $errors = $this->validateRefundPayment($order, $amount);
@@ -155,11 +112,11 @@ class RefundPaymentHandler
         $signature = $this->signaturesGenerator->generateRefundSignature($user, $reference, $amount, $currencyIso);
 
         $debug_str = '';
-        $debug_str .= (!empty($reference)) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
-        $debug_str .= (!empty($apiKey)) ? '[apiKey: ' . $apiKey . ']' : '[No apiKey]';
-        $debug_str .= (!empty($signature)) ? '[Signature: ' . $signature . ']' : '[No signature]';
-        $debug_str .= (!empty($amount)) ? '[Amount: ' . $amount . ']' : '[No amount]';
-        $debug_str .= (!empty($currencyIso)) ? '[Currency ISO: ' . $currencyIso . ']' : '[No currency ISO]';
+        $debug_str .= !empty($reference) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
+        $debug_str .= !empty($apiKey) ? '[apiKey: ' . $apiKey . ']' : '[No apiKey]';
+        $debug_str .= !empty($signature) ? '[Signature: ' . $signature . ']' : '[No signature]';
+        $debug_str .= !empty($amount) ? '[Amount: ' . $amount . ']' : '[No amount]';
+        $debug_str .= !empty($currencyIso) ? '[Currency ISO: ' . $currencyIso . ']' : '[No currency ISO]';
         DebugLog::msg("Refund Payment Handle / Request params: $debug_str", 'notice');
 
         $refundRequest = new RefundRequest(
@@ -191,15 +148,17 @@ class RefundPaymentHandler
             if (!$isMarked) {
                 $warnings[] = sprintf(
                     $this->module->l(
-                        'Total amount of %s has been refunded but not have been marked',
-                        self::FILENAME
-                    )
+                        'Total amount of %s has been refunded but has not been marked as refunded.'
+                    ),
+                    $this->tools->displayPrice($amount, $currency)
                 );
             }
         }
 
         $successMessage = sprintf(
-            $this->module->l('Successfully refunded total amount of %s'),
+            $this->module->l(
+                'Successfully refunded total amount of %s.'
+            ),
             $this->tools->displayPrice($amount, $currency)
         );
 
@@ -213,7 +172,9 @@ class RefundPaymentHandler
         if (!empty($warnings)) {
             $debug_str .= '[Warnings: ' . var_export($warnings, true) . ']';
         }
-        $debug_str .= (method_exists($refundResponse, 'getStatusCode')) ? '[Status code: ' . $refundResponse->getStatusCode() . ']' : '[No status code]';
+        $debug_str .= method_exists($refundResponse, 'getStatusCode')
+            ? '[Status code: ' . $refundResponse->getStatusCode() . ']'
+            : '[No status code]';
         DebugLog::msg("Refund Payment Handle / Response Handler Params: $debug_str", 'notice');
 
         return new HandlerResponse(
@@ -225,29 +186,14 @@ class RefundPaymentHandler
         );
     }
 
-    /**
-     * Validates Payment Refund.
-     *
-     * @param Order $order
-     * @param float $amount
-     *
-     * @return array
-     *
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShopException
-     */
     private function validateRefundPayment(Order $order, $amount)
     {
         if (!$this->validate->isUnsignedFloat($amount)) {
-            $message =
-                $this->module->l(
-                    'Incorrect value provided for refund fields. Expected unsigned number got %s',
-                    self::FILENAME
-                );
-
             return [
                 sprintf(
-                    $message,
+                    $this->module->l(
+                        'Incorrect value provided for refund fields. Expected unsigned number, got %s.'
+                    ),
                     $amount
                 ),
             ];
@@ -263,7 +209,9 @@ class RefundPaymentHandler
 
         if (!$totalCaptured) {
             return [
-                $this->module->l('Order has not been captured. Refund is not possible.', self::FILENAME),
+                $this->module->l(
+                    'Order has not been captured. Refund is not possible.'
+                ),
             ];
         }
 
@@ -271,31 +219,22 @@ class RefundPaymentHandler
         $refundRemaining = $totalCaptured - $totalRefunded;
 
         $currency = new \Currency($order->id_currency);
-        
-        if ($amount > $refundRemaining) {
-            $errorMessage = sprintf(
-                $this->module->l('The total amount of refund %s is greater then the remaining amount of %s'),
-                $this->tools->displayPrice($amount, $currency),
-                $this->tools->displayPrice($refundRemaining, $currency)
-            );
 
-            return [$errorMessage];
+        if ($amount > $refundRemaining) {
+            return [
+                sprintf(
+                    $this->module->l(
+                        'The refund amount %s is greater than the remaining refundable amount of %s.'
+                    ),
+                    $this->tools->displayPrice($amount, $currency),
+                    $this->tools->displayPrice($refundRemaining, $currency)
+                ),
+            ];
         }
 
         return [];
     }
 
-    /**
-     * Marks Refunded Payment.
-     *
-     * @param Order $order
-     * @param float $amount
-     *
-     * @return bool
-     *
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShopException
-     */
     private function markAsRefunded(Order $order, $amount)
     {
         $viaBillRefund = new \ViaBillOrderRefund();
@@ -309,10 +248,12 @@ class RefundPaymentHandler
         try {
             $viaBillRefund->save();
             $totalRefunded = $this->tools->displayNumber($viaBillRefund->getTotalRefunded());
+
             if ($totalCaptured === $totalRefunded) {
                 $refundState = $this->configuration->get(Config::PAYMENT_REFUNDED);
                 $order->setCurrentState($refundState);
             }
+
             $returnValue = true;
         } catch (\Exception $exception) {
             $logger = $this->loggerFactory->create();

@@ -103,25 +103,9 @@ class AbstractAdminController extends \ModuleAdminController
      *
      * @return string
      */
-    public function l($string, $class = null, $addslashes = false, $htmlentities = true)
+    public function l($string, $specific = false, $locale = null)
     {
-        // If parent has l() (legacy ModuleAdminController), use it.
-        if (is_callable(['parent', 'l'])) {
-            return parent::l($string, $class, $addslashes, $htmlentities);
-        }
-
-        // Fallback for PrestaShop versions where l() might be removed.
-        $translator = $this->context ? $this->context->getTranslator() : null;
-
-        if ($translator) {
-            return $translator->trans(
-                $string,
-                [],
-                'Modules.Viabill.Admin'
-            );
-        }
-
-        // Last-resort: return raw string.
-        return $string;
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
     }
+        
 }

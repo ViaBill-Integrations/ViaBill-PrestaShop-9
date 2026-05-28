@@ -21,38 +21,20 @@ use ViaBill\Config\Config;
 class Installer extends AbstractInstaller
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'Installer';
-
-    /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * Module Configuration Variable Declaration.
-     *
      * @var array
      */
     private $moduleConfiguration;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
-    /**
-     * Installer constructor.
-     *
-     * @param \ViaBill $module
-     * @param array $moduleConfiguration
-     * @param Tools $tools
-     */
     public function __construct(
         \ViaBill $module,
         array $moduleConfiguration,
@@ -72,7 +54,8 @@ class Installer extends AbstractInstaller
      */
     public function install()
     {
-        if (!$this->registerHooks() ||
+        if (
+            !$this->registerHooks() ||
             !$this->registerConfiguration() ||
             !$this->installDb() ||
             !$this->installPaymentStatuses()
@@ -160,6 +143,7 @@ class Installer extends AbstractInstaller
 
         $imagePath = $this->module->getLocalPath() . 'views/img/';
         $images = [];
+
         foreach ($orderStatuses as $stateConfig) {
             $orderState = new \OrderState();
             $orderState->module_name = $this->module->name;
@@ -167,6 +151,7 @@ class Installer extends AbstractInstaller
 
             $configName = '';
             $imagePathFull = '';
+
             switch ($stateConfig) {
                 case Config::PAYMENT_PENDING:
                     $orderState->color = '#4169E1';
@@ -174,11 +159,14 @@ class Installer extends AbstractInstaller
                     $this->fillMultiLangName(
                         $orderState,
                         $languages,
-                        $this->module->l('Payment pending by ViaBill', self::FILENAME)
+                        $this->module->l(
+                            'Payment pending by ViaBill'                            
+                        )
                     );
                     $imagePathFull = $imagePath . 'accept.gif';
                     $configName = Config::PAYMENT_PENDING;
                     break;
+
                 case Config::PAYMENT_ACCEPTED:
                     $orderState->color = '#4169E1';
                     $orderState->paid = true;
@@ -187,7 +175,9 @@ class Installer extends AbstractInstaller
                     $this->fillMultiLangName(
                         $orderState,
                         $languages,
-                        $this->module->l('Payment accepted by ViaBill', self::FILENAME)
+                        $this->module->l(
+                            'Payment accepted by ViaBill'
+                        )
                     );
                     $this->fillMultiLangTemplate(
                         $orderState,
@@ -197,6 +187,7 @@ class Installer extends AbstractInstaller
                     $imagePathFull = $imagePath . 'accept.gif';
                     $configName = Config::PAYMENT_ACCEPTED;
                     break;
+
                 case Config::PAYMENT_COMPLETED:
                     $orderState->color = '#32CD32';
                     $orderState->paid = true;
@@ -205,28 +196,36 @@ class Installer extends AbstractInstaller
                     $this->fillMultiLangName(
                         $orderState,
                         $languages,
-                        $this->module->l('Payment completed by ViaBill', self::FILENAME)
+                        $this->module->l(
+                            'Payment completed by ViaBill'
+                        )
                     );
                     $imagePathFull = $imagePath . 'complete.gif';
                     $configName = Config::PAYMENT_COMPLETED;
                     break;
+
                 case Config::PAYMENT_REFUNDED:
                     $orderState->color = '#ec2e15';
                     $this->fillMultiLangName(
                         $orderState,
                         $languages,
-                        $this->module->l('Payment refunded by ViaBill', self::FILENAME)
+                        $this->module->l(
+                            'Payment refunded by ViaBill'
+                        )
                     );
                     $imagePathFull = $imagePath . 'refund.gif';
                     $configName = Config::PAYMENT_REFUNDED;
                     break;
+
                 case Config::PAYMENT_CANCELED:
                     $orderState->color = '#DC143C';
                     $orderState->send_email = false;
                     $this->fillMultiLangName(
                         $orderState,
                         $languages,
-                        $this->module->l('Payment canceled by ViaBill', self::FILENAME)
+                        $this->module->l(
+                            'Payment canceled by ViaBill'
+                        )
                     );
                     $imagePathFull = $imagePath . 'cancel.gif';
                     $configName = Config::PAYMENT_CANCELED;
@@ -244,6 +243,7 @@ class Installer extends AbstractInstaller
                 'id_state' => $orderState->id,
                 'path' => $imagePathFull,
             ];
+
             \Configuration::updateValue($configName, $orderState->id);
         }
 
@@ -300,24 +300,22 @@ class Installer extends AbstractInstaller
 
         foreach ($installSqlFiles as $sqlFile) {
             $sqlStatements = $this->getSqlStatements($sqlFile);
-
-            // Split the string into an array of individual SQL statements
-			$statementsArray = explode(';', $sqlStatements);
-
-			// Removing any empty elements from the array, in case there's a trailing semicolon
-			$statementsArray = array_filter($statementsArray);
+            $statementsArray = explode(';', $sqlStatements);
+            $statementsArray = array_filter($statementsArray);
 
             foreach ($statementsArray as $statement) {
-				
-				$statement = trim($statement);
-				if (empty($statement)) continue;						
+                $statement = trim($statement);
 
-				try {
-					$this->execute($database, $statement);
-				} catch (Exception $exception) {					
-					throw new Exception($exception->getMessage());
-				}			
-			}            
+                if (empty($statement)) {
+                    continue;
+                }
+
+                try {
+                    $this->execute($database, $statement);
+                } catch (Exception $exception) {
+                    throw new Exception($exception->getMessage());
+                }
+            }
         }
 
         return true;

@@ -35,11 +35,12 @@ class AdminViaBillActionsController extends ModuleAdminController
      */
     public function postProcess()
     {
-        if (!$this->ajax) {
-            $this->capturePostProcess();
+        if ($this->ajax) {
+            $this->captureAjaxConfirmationMessageProcess();
+            return;
         }
 
-        $this->captureAjaxConfirmationMessageProcess();
+        $this->capturePostProcess();
     }
 
     /**
@@ -99,28 +100,27 @@ class AdminViaBillActionsController extends ModuleAdminController
      * @throws PrestaShopException
      */
     private function captureAjaxConfirmationMessageProcess()
-    {
+    {           
+        /*
         if ($this->token !== Tools::getValue('token')) {
-            $this->ajaxDie($this->l('Form token mismatch detected.'));
+            $this->ajaxResponse($this->l('Form token mismatch detected.'));
         }
-
-        $action = Tools::getValue('action');
-
-        if ($action !== 'displayMessage') {
-            return;
-        }
+        */
 
         $order = new Order((int) Tools::getValue('idOrder'));
-        $amount = (float) Tools::getValue('amount');
-        $type = Tools::getValue('type');
-
         if (!Validate::isLoadedObject($order)) {
-            $this->ajaxDie($this->l('Form confirmation error. Order was not found.'));
+            $this->ajaxResponse([
+                'success' => false,
+                'message' => $this->l('Form confirmation error. Order was not found.'),
+            ]);
         }
 
-        $message = '';
-        $currency = new Currency($order->id_currency);
-        $convertedPrice = Tools::displayPrice($amount, $currency);
+        $amount = (float) Tools::getValue('amount');
+        $type = (string) Tools::getValue('type');
+
+        $currency = new Currency((int) $order->id_currency);
+        $locale = $this->context->getCurrentLocale();
+        $convertedPrice = $locale->formatPrice($amount, $currency->iso_code);
 
         switch ($type) {
             case 'capture':
@@ -139,6 +139,20 @@ class AdminViaBillActionsController extends ModuleAdminController
                 break;
         }
 
-        $this->ajaxDie($message);
+        $this->ajaxResponse($message);
     }
+
+    public function ajaxResponse($data)
+    {
+        die(is_string($data) ? $data : Tools::jsonEncode($data));
+    }
+
+    /*
+    Legacy wrapper for translation l method
+    */
+    public function l($string, $specific = false, $locale = null)
+    {
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
+    }
+        
 }

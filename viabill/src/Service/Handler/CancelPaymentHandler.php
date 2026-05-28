@@ -29,70 +29,40 @@ use ViaBill\Util\SignaturesGenerator;
 class CancelPaymentHandler
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'CancelPaymentHandler';
-
-    /**
-     * Cancel Service Variable Declaration.
-     *
      * @var CancelService
      */
     private $cancelService;
 
     /**
-     * User Service Variable Declaration.
-     *
      * @var UserService
      */
     private $userService;
 
     /**
-     * Signatures Generator Variable Declaration.
-     *
      * @var SignaturesGenerator
      */
     private $signaturesGenerator;
 
     /**
-     * Configuration Variable Declaration.
-     *
      * @var Configuration
      */
     private $configuration;
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * Order State Provider Variable Declaration.
-     *
      * @var OrderStatusProvider
      */
     private $stateProvider;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
-    /**
-     * CancelPaymentHandler constructor.
-     *
-     * @param \ViaBill $module
-     * @param CancelService $cancelService
-     * @param UserService $userService
-     * @param SignaturesGenerator $signaturesGenerator
-     * @param Configuration $configuration
-     * @param OrderStatusProvider $stateProvider
-     * @param Tools $tools
-     */
     public function __construct(
         \ViaBill $module,
         CancelService $cancelService,
@@ -124,27 +94,27 @@ class CancelPaymentHandler
         $errors = [];
         $isCancelled = false;
 
-        // debug info
-        $debug_str = (empty($order)) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
         DebugLog::msg("Cancel Payment Handle / Order: $debug_str", 'notice');
 
         try {
             $isCancelled = $this->stateProvider->isCancelled($order);
         } catch (\Exception $exception) {
-            /** @var string[] $errors */
-            $exception_errors = json_decode($exception->getMessage());
+            $exceptionErrors = json_decode($exception->getMessage());
 
-            if (is_array($exception_errors)) {
-                foreach ($exception_errors as $error) {
+            if (is_array($exceptionErrors)) {
+                foreach ($exceptionErrors as $error) {
                     $errors[] = $error;
                 }
             } else {
-                $errors[] = $exception_errors;
+                $errors[] = $exceptionErrors;
             }
         }
 
-        if ($order->getCurrentState() == $cancelState || $isCancelled) {
-            $errors[] = $this->module->l('Order is already canceled', self::FILENAME);
+        if ((int) $order->getCurrentState() === (int) $cancelState || $isCancelled) {
+            $errors[] = $this->module->l(
+                'Order is already canceled.'
+            );
         }
 
         if (!empty($errors)) {
@@ -158,9 +128,9 @@ class CancelPaymentHandler
 
         try {
             $debug_str = '';
-            $debug_str .= (property_exists($order, 'reference')) ? '[Order Ref: ' . $order->reference . ']' : '[No order reference]';
-            $debug_str .= (method_exists($user, 'getKey')) ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
-            $debug_str .= (!empty($signature)) ? '[Signature: ' . $signature . ']' : '[No signature]';
+            $debug_str .= property_exists($order, 'reference') ? '[Order Ref: ' . $order->reference . ']' : '[No order reference]';
+            $debug_str .= method_exists($user, 'getKey') ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
+            $debug_str .= !empty($signature) ? '[Signature: ' . $signature . ']' : '[No signature]';
             DebugLog::msg("Cancel Payment Handle / Request: $debug_str", 'notice');
         } catch (\Exception $exception) {
             $er = $exception->getMessage();
@@ -183,10 +153,10 @@ class CancelPaymentHandler
             }
 
             $debug_str = var_export($responseErrors, true);
-            DebugLog::msg("Cancel Payment Handle / Respose Errors: $debug_str", 'error');
+            DebugLog::msg("Cancel Payment Handle / Response Errors: $debug_str", 'error');
         } else {
             $debug_str = $response->getStatusCode();
-            DebugLog::msg("Cancel Payment Handle / Respose Code: $debug_str", 'notice');
+            DebugLog::msg("Cancel Payment Handle / Response Code: $debug_str", 'notice');
         }
 
         if (empty($errors)) {
@@ -197,7 +167,9 @@ class CancelPaymentHandler
             $order,
             $response->getStatusCode(),
             $errors,
-            $this->module->l('Order has been successfully canceled', self::FILENAME)
+            $this->module->l(
+                'Order has been successfully canceled.'
+            )
         );
     }
 }

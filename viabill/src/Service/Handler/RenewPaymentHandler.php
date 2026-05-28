@@ -26,34 +26,21 @@ use ViaBill\Util\SignaturesGenerator;
 class RenewPaymentHandler
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'RenewPaymentHandler';
-
-    /**
-     * Renew Service Variable Declaration.
-     *
      * @var RenewService
      */
     private $renewService;
 
     /**
-     * User Service Variable Declaration.
-     *
      * @var UserService
      */
     private $userService;
 
     /**
-     * Signatures Generator Variable Declaration.
-     *
      * @var SignaturesGenerator
      */
     private $signaturesGenerator;
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var ViaBill
      */
     private $module;
@@ -87,8 +74,7 @@ class RenewPaymentHandler
      */
     public function handle(Order $order)
     {
-        // debug info
-        $debug_str = (empty($order)) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
         DebugLog::msg("Renew Payment Handle / Order: $debug_str", 'notice');
 
         $reference = $order->reference;
@@ -99,9 +85,9 @@ class RenewPaymentHandler
         );
 
         $debug_str = '';
-        $debug_str .= (!empty($reference)) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
-        $debug_str .= (method_exists($user, 'getKey')) ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
-        $debug_str .= (!empty($signature)) ? '[Signature: ' . $signature . ']' : '[No signature]';
+        $debug_str .= !empty($reference) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
+        $debug_str .= method_exists($user, 'getKey') ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
+        $debug_str .= !empty($signature) ? '[Signature: ' . $signature . ']' : '[No signature]';
         DebugLog::msg("Renew Payment Handle / Request: $debug_str", 'notice');
 
         $renewRequest = new RenewRequest(
@@ -120,14 +106,16 @@ class RenewPaymentHandler
             }
 
             $debug_str = var_export($apiErrors, true);
-            DebugLog::msg("Renew Payment Handle / Respose Errors: $debug_str", 'error');
+            DebugLog::msg("Renew Payment Handle / Response Errors: $debug_str", 'error');
         }
 
         return new HandlerResponse(
             $order,
             $renewResponse->getStatusCode(),
             $errors,
-            $this->module->l('Order has been Successfully renewed')
+            $this->module->l(
+                'Order has been successfully renewed.'
+            )
         );
     }
 }

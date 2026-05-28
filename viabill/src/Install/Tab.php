@@ -17,78 +17,50 @@ namespace ViaBill\Install;
 class Tab
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'Tab';
-
-    /**
-     * Defines Invisible Controller Name.
-     *
      * @var string
      */
     private $controllerInvisibleName = 'AdminViaBillTabs';
 
     /**
-     * Defines Settings Controller Name.
-     *
      * @var string
      */
     private $controllerSettingsName = 'AdminViaBillSettings';
 
     /**
-     * Defines Authentication Controller Name.
-     *
      * @var string
      */
     private $controllerAuthenticationName = 'AdminViaBillAuthentication';
 
     /**
-     * Defines Actions Controller Name.
-     *
      * @var string
      */
     private $controllerActionsName = 'AdminViaBillActions';
 
     /**
-     * Defines Contact Controller Name.
-     *
      * @var string
      */
     private $controllerCustomCodeName = 'AdminViaBillCustomCode';
 
     /**
-     * Defines Contact Controller Name.
-     *
      * @var string
      */
     private $controllerContactName = 'AdminViaBillContact';
 
     /**
-     * Defines Troubleshoot Controller Name.
-     *
      * @var string
      */
     private $controllerTroubleshootName = 'AdminViaBillTroubleshoot';
 
     /**
-     * Defines Conflict Controller Name.
-     *
      * @var string
      */
     private $controllerConflictName = 'AdminViaBillConflict';
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
-    /**
-     * Tab constructor.
-     *
-     * @param \ViaBill $module
-     */
     public function __construct(\ViaBill $module)
     {
         $this->module = $module;
@@ -109,49 +81,63 @@ class Tab
                 'visible' => false,
             ],
             [
-                'name' => $this->module->l('Ajax', self::FILENAME),
+                'name' => $this->module->l(
+                    'Ajax'
+                ),
                 'ParentClassName' => 'AdminParentModulesSf',
                 'class_name' => $this->controllerActionsName,
                 'visible' => false,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Authentication', self::FILENAME),
+                'name' => $this->module->l(
+                    'Authentication'
+                ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerAuthenticationName,
                 'visible' => true,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Settings', self::FILENAME),
+                'name' => $this->module->l(
+                    'Settings'
+                ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerSettingsName,
                 'visible' => true,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Custom CSS/JS', self::FILENAME),
+                'name' => $this->module->l(
+                    'Custom CSS/JS'
+                ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerCustomCodeName,
                 'visible' => true,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Contact', self::FILENAME),
+                'name' => $this->module->l(
+                    'Contact'
+                ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerContactName,
                 'visible' => true,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Troubleshooting', self::FILENAME),
+                'name' => $this->module->l(
+                    'Troubleshooting'
+                ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerTroubleshootName,
                 'visible' => true,
                 'module_tab' => true,
             ],
             [
-                'name' => $this->module->l('Ajax', self::FILENAME),
+                'name' => $this->module->l(
+                    'Ajax'
+                ),
                 'ParentClassName' => 'AdminParentModulesSf',
                 'class_name' => $this->controllerActionsName,
                 'visible' => false,

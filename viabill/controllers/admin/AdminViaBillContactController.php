@@ -130,6 +130,11 @@ class AdminViaBillContactController extends ModuleAdminController
         $params = [];
 
         try {
+            // security check
+            if (Tools::getAdminTokenLite('AdminViaBillContact') !== Tools::getValue('token')) {
+
+            }
+
             // Get Module Version
             $moduleInstance = Module::getInstanceByName('viabill');
             $module_version = $moduleInstance->version;
@@ -184,9 +189,9 @@ class AdminViaBillContactController extends ModuleAdminController
                 default:
                     $terms_of_use_url = 'https://viabill.com/dk/legal/cooperation-agreement/';
                     break;
-            }
-
-            $token = $this->token;
+            }     
+            
+            $token = Tools::getValue('token');
 
             $params = [
                 'module_version' => $module_version,
@@ -408,5 +413,13 @@ class AdminViaBillContactController extends ModuleAdminController
         }
 
         return $tail;
+    }
+
+    /*
+    Legacy wrapper for translation l method
+    */
+    public function l($string, $specific = false, $locale = null)
+    {
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
     }
 }

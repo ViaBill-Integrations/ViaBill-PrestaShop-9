@@ -84,8 +84,11 @@ class ViaBillCheckoutModuleFrontController extends ModuleFrontController
         $debug_str = "[payment request: {$request_str}]";
         DebugLog::msg('Checkout postProcess / ' . $debug_str);
 
-        $errorMessage =
-            $this->module->l('An unexpected error occurred while processing the payment.', self::FILENAME);
+        $errorMessage = $this->trans(
+          'An unexpected error occurred while processing the payment.',
+            [],
+            'Modules.Viabill.Shop'
+        );
 
         try {
             $paymentResponse = $paymentService->createPayment($paymentRequest);

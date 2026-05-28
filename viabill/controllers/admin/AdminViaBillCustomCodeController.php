@@ -23,15 +23,10 @@ require_once dirname(__FILE__) . '/../../vendor/autoload.php';
 class AdminViaBillCustomCodeController extends ModuleAdminController
 {
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var ViaBill
      */
     public $module;
 
-    /**
-     * AdminViaBillCustomCodeController constructor.
-     */
     public function __construct()
     {
         $this->bootstrap = true;
@@ -41,7 +36,7 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
     }
 
     /**
-     * Initialize the controller
+     * Initialize the controller.
      */
     public function init()
     {
@@ -54,7 +49,7 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
     }
 
     /**
-     * Initialize content
+     * Initialize content.
      */
     public function initContent()
     {
@@ -64,7 +59,7 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
     }
 
     /**
-     * Process form submission
+     * Process form submission.
      *
      * @return bool|ObjectModel|void
      */
@@ -73,19 +68,24 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
         parent::postProcess();
 
         if (Tools::isSubmit('submitViaBillCustomCode')) {
-            $customCSS = Tools::getValue('VIABILL_CUSTOM_CSS');
-            $customJS = Tools::getValue('VIABILL_CUSTOM_JS');
+            $customCSS = (string) Tools::getValue('VIABILL_CUSTOM_CSS');
+            $customJS = (string) Tools::getValue('VIABILL_CUSTOM_JS');
 
             Configuration::updateValue('VIABILL_CUSTOM_CSS', $customCSS);
             Configuration::updateValue('VIABILL_CUSTOM_JS', $customJS);
 
-            $this->context->cookie->saveSuccessMessage = $this->l('Custom code settings have been successfully updated.');
+            $this->context->cookie->saveSuccessMessage = $this->trans(
+                'Custom code settings have been successfully updated.',
+                [],
+                'Modules.Viabill.Admin'
+            );
+
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminViaBillCustomCode'));
         }
     }
 
     /**
-     * Add CSS and JS files to the controller
+     * Add CSS and JS files to the controller.
      *
      * @param bool $isNewTheme
      *
@@ -99,123 +99,128 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
             $this->context->controller->addJquery();
         }
 
-        // Only add CSS/JS if files exist
         $cssPath = $this->module->getLocalPath() . 'views/css/admin/custom-code.css';
         $jsPath = $this->module->getLocalPath() . 'views/js/admin/custom-code.js';
 
         if (file_exists($cssPath)) {
-            $this->addCSS($this->module->getLocalPath() . 'views/css/admin/custom-code.css');
+            $this->addCSS($this->module->getPathUri() . 'views/css/admin/custom-code.css');
         }
 
         if (file_exists($jsPath)) {
-            $this->addJS($this->module->getLocalPath() . 'views/js/admin/custom-code.js');
+            $this->addJS($this->module->getPathUri() . 'views/js/admin/custom-code.js');
         }
     }
 
     /**
-     * Render the configuration form
+     * Render the configuration form.
      *
      * @return string
      */
     public function renderForm()
-    {
-        // Get default language
-        $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
+{
+    $action = $this->context->link->getAdminLink('AdminViaBillCustomCode');
+    $customCSS = Tools::safeOutput((string) Configuration::get('VIABILL_CUSTOM_CSS'));
+    $customJS = Tools::safeOutput((string) Configuration::get('VIABILL_CUSTOM_JS'));
 
-        // Build the form fields
-        $fieldsForm = [
-            'form' => [
-                'legend' => [
-                    'title' => $this->l('Custom CSS and JavaScript Settings'),
-                    'icon' => 'icon-code'
-                ],
-                'description' => $this->l('Add custom CSS and JavaScript code to customize your ViaBill integration. This code will be injected into all front-end pages.'),
-                'input' => [
-                    [
-                        'type' => 'textarea',
-                        'label' => $this->l('Custom CSS Code'),
-                        'name' => 'VIABILL_CUSTOM_CSS',
-                        'desc' => $this->l('Enter your custom CSS code here (without <style> tags). It will be inserted in the page header.'),
-                        'rows' => 15,
-                        'cols' => 100,
-                        'class' => 'viabill-code-editor',
-                    ],
-                    [
-                        'type' => 'textarea',
-                        'label' => $this->l('Custom JavaScript Code'),
-                        'name' => 'VIABILL_CUSTOM_JS',
-                        'desc' => $this->l('Enter your custom JavaScript code here (without <script> tags). It will be inserted in the page footer.'),
-                        'rows' => 15,
-                        'cols' => 100,
-                        'class' => 'viabill-code-editor',
-                    ],
-                ],
-                'submit' => [
-                    'title' => $this->l('Save'),
-                    'class' => 'btn btn-default pull-right',
-                ]
-            ]
-        ];
+    $html = '
+    <form method="post" action="' . $action . '" style="margin-top: 20px;">
+        <div class="panel">
+            <div class="panel-heading">
+                <i class="icon-code"></i> ' . $this->trans('Custom CSS and JavaScript Settings', [], 'Modules.Viabill.Admin') . '
+            </div>
 
-        $helper = new HelperForm();
+            <div class="panel-body">
+                <p style="margin-bottom: 20px;">' . $this->trans(
+                    'Add custom CSS and JavaScript code to customize your ViaBill integration. This code will be injected into all front-end pages.',
+                    [],
+                    'Modules.Viabill.Admin'
+                ) . '</p>
 
-        // Module, token and currentIndex
-        $helper->module = $this->module;
-        $helper->name_controller = $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminViaBillCustomCode');
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminViaBillCustomCode', false);
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label for="VIABILL_CUSTOM_CSS" style="display:block; font-weight:600; margin-bottom:10px;">
+                        ' . $this->trans('Custom CSS Code', [], 'Modules.Viabill.Admin') . '
+                    </label>
+                    <textarea
+                        id="VIABILL_CUSTOM_CSS"
+                        name="VIABILL_CUSTOM_CSS"
+                        rows="14"
+                        class="form-control viabill-code-editor"
+                        style="width:100%; min-height:320px; font-family:monospace;"
+                    >' . $customCSS . '</textarea>
+                    <p class="help-block" style="margin-top:8px;">
+                        ' . $this->trans(
+                            'Enter your custom CSS code here (without &lt;style&gt; tags). It will be inserted in the page header.',
+                            [],
+                            'Modules.Viabill.Admin'
+                        ) . '
+                    </p>
+                </div>
 
-        // Language
-        $helper->default_form_language = $defaultLang;
-        $helper->allow_employee_form_lang = $defaultLang;
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="VIABILL_CUSTOM_JS" style="display:block; font-weight:600; margin-bottom:10px;">
+                        ' . $this->trans('Custom JavaScript Code', [], 'Modules.Viabill.Admin') . '
+                    </label>
+                    <textarea
+                        id="VIABILL_CUSTOM_JS"
+                        name="VIABILL_CUSTOM_JS"
+                        rows="14"
+                        class="form-control viabill-code-editor"
+                        style="width:100%; min-height:320px; font-family:monospace;"
+                    >' . $customJS . '</textarea>
+                    <p class="help-block" style="margin-top:8px;">
+                        ' . $this->trans(
+                            'Enter your custom JavaScript code here (without &lt;script&gt; tags). It will be inserted in the page footer.',
+                            [],
+                            'Modules.Viabill.Admin'
+                        ) . '
+                    </p>
+                </div>
+            </div>
 
-        // Title and toolbar
-        $helper->title = $this->module->displayName;
-        $helper->show_toolbar = true;
-        $helper->toolbar_scroll = true;
-        $helper->submit_action = 'submitViaBillCustomCode';
+            <div class="panel-footer" style="display:block; overflow:auto;">
+                <button type="submit" name="submitViaBillCustomCode" class="btn btn-primary pull-right">
+                    <i class="process-icon-save"></i> ' . $this->trans('Save', [], 'Modules.Viabill.Admin') . '
+                </button>
+            </div>
+        </div>
+    </form>';
 
-        // Load current values
-        $helper->fields_value['VIABILL_CUSTOM_CSS'] = Configuration::get('VIABILL_CUSTOM_CSS');
-        $helper->fields_value['VIABILL_CUSTOM_JS'] = Configuration::get('VIABILL_CUSTOM_JS');
-
-        return $helper->generateForm([$fieldsForm]);
-    }
+    return $html;
+}
 
     /**
-     * Render the page content
+     * Render the page content.
      *
      * @return string
      */
     public function renderView()
     {
-        // Create info box HTML directly
         $infoHtml = '
         <div class="alert alert-info">
-            <h4><i class="icon-info-circle"></i> ' . $this->l('Custom CSS and JavaScript Code') . '</h4>
-            <p>' . $this->l('This feature allows you to add custom CSS and JavaScript code to enhance your ViaBill integration without modifying theme files.') . '</p>
+            <h4><i class="icon-info-circle"></i> ' . $this->trans('Custom CSS and JavaScript Code', [], 'Modules.Viabill.Admin') . '</h4>
+            <p>' . $this->trans('This feature allows you to add custom CSS and JavaScript code to enhance your ViaBill integration without modifying theme files.', [], 'Modules.Viabill.Admin') . '</p>
             <ul>
-                <li>' . $this->l('Customize the appearance of ViaBill price tags') . '</li>
-                <li>' . $this->l('Add custom styling to payment buttons') . '</li>
-                <li>' . $this->l('Integrate third-party analytics or tracking scripts') . '</li>
-                <li>' . $this->l('Implement custom behavior for the checkout process') . '</li>
+                <li>' . $this->trans('Customize the appearance of ViaBill price tags', [], 'Modules.Viabill.Admin') . '</li>
+                <li>' . $this->trans('Add custom styling to payment buttons', [], 'Modules.Viabill.Admin') . '</li>
+                <li>' . $this->trans('Integrate third-party analytics or tracking scripts', [], 'Modules.Viabill.Admin') . '</li>
+                <li>' . $this->trans('Implement custom behavior for the checkout process', [], 'Modules.Viabill.Admin') . '</li>
             </ul>
         </div>
-        
+
         <div class="alert alert-warning">
-            <h4><i class="icon-warning"></i> ' . $this->l('Important Notes') . '</h4>
-            <p>' . $this->l('Do NOT include <style> or <script> tags in your code - they will be added automatically.') . '</p>
-            <p>' . $this->l('Always test your custom code thoroughly before deploying to production.') . '</p>
-            <p>' . $this->l('Invalid code may break your website functionality.') . '</p>
+            <h4><i class="icon-warning"></i> ' . $this->trans('Important Notes', [], 'Modules.Viabill.Admin') . '</h4>
+            <p>' . $this->trans('Do NOT include &lt;style&gt; or &lt;script&gt; tags in your code - they will be added automatically.', [], 'Modules.Viabill.Admin') . '</p>
+            <p>' . $this->trans('Always test your custom code thoroughly before deploying to production.', [], 'Modules.Viabill.Admin') . '</p>
+            <p>' . $this->trans('Invalid code may break your website functionality.', [], 'Modules.Viabill.Admin') . '</p>
         </div>
-        
+
         <div class="panel">
             <div class="panel-heading">
-                <i class="icon-file-code-o"></i> ' . $this->l('Code Examples') . '
+                <i class="icon-file-code-o"></i> ' . $this->trans('Code Examples', [], 'Modules.Viabill.Admin') . '
             </div>
             <div class="panel-body">
-                <h4>' . $this->l('Example 1: Customize ViaBill Price Tag Colors') . '</h4>
-                <p>' . $this->l('Add this to the Custom CSS Code field:') . '</p>
+                <h4>' . $this->trans('Example 1: Customize ViaBill Price Tag Colors', [], 'Modules.Viabill.Admin') . '</h4>
+                <p>' . $this->trans('Add this to the Custom CSS Code field:', [], 'Modules.Viabill.Admin') . '</p>
                 <pre style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd;">/* Customize ViaBill price tag appearance */
 .viabill-pricetag {
     color: #9b26b7 !important;
@@ -226,9 +231,9 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
     color: #25b9d7 !important;
     text-decoration: underline;
 }</pre>
-                
-                <h4>' . $this->l('Example 2: Track ViaBill Payment Selection') . '</h4>
-                <p>' . $this->l('Add this to the Custom JavaScript Code field:') . '</p>
+
+                <h4>' . $this->trans('Example 2: Track ViaBill Payment Selection', [], 'Modules.Viabill.Admin') . '</h4>
+                <p>' . $this->trans('Add this to the Custom JavaScript Code field:', [], 'Modules.Viabill.Admin') . '</p>
                 <pre style="background: #f5f5f5; padding: 10px; border: 1px solid #ddd;">// Track when ViaBill payment method is selected
 $(document).ready(function() {
     $(\'input[name="payment-option"]\').on(\'change\', function() {
@@ -240,7 +245,15 @@ $(document).ready(function() {
 });</pre>
             </div>
         </div>';
-        
+
         return $infoHtml;
+    }
+
+    /*
+    Legacy wrapper for translation l method
+    */
+    public function l($string, $specific = false, $locale = null)
+    {
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
     }
 }

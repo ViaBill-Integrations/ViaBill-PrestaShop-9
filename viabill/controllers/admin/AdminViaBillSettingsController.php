@@ -601,4 +601,12 @@ class AdminViaBillSettingsController extends ModuleAdminController
 
         return $tail;
     }
+
+    /*
+    Legacy wrapper for translation l method
+    */
+    public function l($string, $specific = false, $locale = null)
+    {
+        return $this->trans($string, [], 'Modules.Viabill.Admin', $locale);
+    }
 }

@@ -31,78 +31,45 @@ use ViaBill\Util\SignaturesGenerator;
 class CapturePaymentHandler
 {
     /**
-     * Filename Constant
-     */
-    const FILENAME = 'CapturePaymentHandler';
-
-    /**
-     * Capture Services Variable Declaration.
-     *
      * @var CaptureService
      */
     private $captureService;
 
     /**
-     * User Service Variable Declaration.
-     *
      * @var UserService
      */
     private $userService;
 
     /**
-     * Signature Generator Variable Declaration.
-     *
      * @var SignaturesGenerator
      */
     private $signaturesGenerator;
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var ViaBill
      */
     private $module;
 
     /**
-     * Tools Variable Declaration.
-     *
      * @var Tools
      */
     private $tools;
 
     /**
-     * Validate Variable Declaration.
-     *
      * @var Validate
      */
     private $validate;
 
     /**
-     * Configuration Variable Declaration.
-     *
      * @var Configuration
      */
     private $configuration;
 
     /**
-     * Logger Factory Variable Declaration.
-     *
      * @var LoggerFactory
      */
     private $loggerFactory;
 
-    /**
-     * CapturePaymentHandler constructor.
-     *
-     * @param ViaBill $module
-     * @param LoggerFactory $loggerFactory
-     * @param CaptureService $captureService
-     * @param UserService $userService
-     * @param SignaturesGenerator $signaturesGenerator
-     * @param Tools $tools
-     * @param Validate $validate
-     * @param Configuration $configuration
-     */
     public function __construct(
         ViaBill $module,
         LoggerFactory $loggerFactory,
@@ -136,8 +103,7 @@ class CapturePaymentHandler
      */
     public function handle(Order $order, $amount)
     {
-        // debug info
-        $debug_str = (empty($order)) ? 'Order is empty' : var_export($order, true);
+        $debug_str = empty($order) ? 'Order is empty' : var_export($order, true);
         DebugLog::msg("Capture Payment Handle / Amount: $amount Order: $debug_str", 'notice');
 
         $errors = $this->validateCapturePayment($order, $amount);
@@ -153,7 +119,7 @@ class CapturePaymentHandler
 
         $user = $this->userService->getUser();
         $reference = $order->reference;
-        $amountNegative = -1 * abs($amount);        
+        $amountNegative = -1 * abs($amount);
 
         $signature = $this->signaturesGenerator->generateCaptureSignature(
             $user,
@@ -164,11 +130,11 @@ class CapturePaymentHandler
 
         try {
             $debug_str = '';
-            $debug_str .= (!empty($reference)) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
-            $debug_str .= (method_exists($user, 'getKey')) ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
-            $debug_str .= (!empty($signature)) ? '[Signature: ' . $signature . ']' : '[No signature]';
-            $debug_str .= (!empty($amountNegative)) ? '[Amount Negative: ' . $amountNegative . ']' : '[No amount negative]';
-            $debug_str .= (property_exists($currency, 'iso_code')) ? '[Currency Code: ' . $currency->iso_code . ']' : '[No currency code]';
+            $debug_str .= !empty($reference) ? '[Order Ref: ' . $reference . ']' : '[No order reference]';
+            $debug_str .= method_exists($user, 'getKey') ? '[Key: ' . $user->getKey() . ']' : '[No user key]';
+            $debug_str .= !empty($signature) ? '[Signature: ' . $signature . ']' : '[No signature]';
+            $debug_str .= !empty($amountNegative) ? '[Amount Negative: ' . $amountNegative . ']' : '[No amount negative]';
+            $debug_str .= property_exists($currency, 'iso_code') ? '[Currency Code: ' . $currency->iso_code . ']' : '[No currency code]';
             DebugLog::msg("Capture Payment Handle / Request params: $debug_str", 'notice');
         } catch (\Exception $exception) {
             $er = $exception->getMessage();
@@ -185,7 +151,6 @@ class CapturePaymentHandler
         );
 
         $captureResponse = $this->captureService->captureTransaction($captureRequest);
-
         $responseErrors = $captureResponse->getErrors();
 
         if (!empty($responseErrors)) {
@@ -205,17 +170,17 @@ class CapturePaymentHandler
         $warnings = [];
 
         if (!$isMarked && empty($responseErrors)) {
-            $warningMessage =
-            $this->module->l('The total amount of %s has been captured but has not been marked.', self::FILENAME);
-
             $warnings[] = sprintf(
-                $warningMessage,
-                $this->tools->displayPrice($amount, $currency)
+                $this->module->l(
+                    'The total amount of %s has been captured but has not been marked.'),
+                    $amount                
             );
         }
 
         $message = sprintf(
-            $this->module->l('Successfully captured total amount of %s', self::FILENAME),
+            $this->module->l(
+                'Successfully captured total amount of %s.'               
+            ),
             $this->tools->displayPrice($amount, $currency)
         );
 
@@ -229,7 +194,9 @@ class CapturePaymentHandler
         if (!empty($warnings)) {
             $debug_str .= '[Warnings: ' . var_export($warnings, true) . ']';
         }
-        $debug_str .= (method_exists($captureResponse, 'getStatusCode')) ? '[Status code: ' . $captureResponse->getStatusCode() . ']' : '[No status code]';
+        $debug_str .= method_exists($captureResponse, 'getStatusCode')
+            ? '[Status code: ' . $captureResponse->getStatusCode() . ']'
+            : '[No status code]';
         DebugLog::msg("Capture Payment Handle / Response Handler Params: $debug_str", 'notice');
 
         return new HandlerResponse(
@@ -255,15 +222,11 @@ class CapturePaymentHandler
     private function validateCapturePayment(Order $order, $amount)
     {
         if (!$this->validate->isUnsignedFloat($amount)) {
-            $message =
-                $this->module->l(
-                    'Incorrect value provided for capture fields. Expected unsigned number got %s',
-                    self::FILENAME
-                );
-
             return [
                 sprintf(
-                    $message,
+                    $this->module->l(
+                        'Incorrect value provided for capture fields. Expected unsigned number, got %s.'
+                    ),
                     $amount
                 ),
             ];
@@ -273,20 +236,17 @@ class CapturePaymentHandler
         $orderCapture = new \ViaBillOrderCapture($primaryKey);
 
         $capturedAmount = $orderCapture->getTotalCaptured();
-
         $currency = new \Currency($order->id_currency);
-
         $total = $capturedAmount + (float) $amount;
 
-        if ($total > $order->total_paid_tax_incl) {        
-            $message =
-            $this->module->l('Total amount of capture breached. Remaining left to capture is %s', self::FILENAME);
-
+        if ($total > $order->total_paid_tax_incl) {
             $remainingToCapture = (float) $order->total_paid_tax_incl - $capturedAmount;
 
             return [
                 sprintf(
-                    $message,
+                    $this->module->l(
+                        'Total capture amount exceeded. Remaining amount available to capture is %s.'
+                    ),
                     $this->tools->displayPrice($remainingToCapture, $currency)
                 ),
             ];

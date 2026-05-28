@@ -22,62 +22,35 @@ use ViaBill\Object\Handler\HandlerResponse;
 class PaymentManagementHandler
 {
     /**
-     * Filename Constant.
-     */
-    const FILENAME = 'PaymentManagementHandler';
-
-    /**
-     * Cancel Payment Variable Declaration.
-     *
      * @var CancelPaymentHandler
      */
     private $cancelPaymentHandler;
 
     /**
-     * Capture Payment Variable Declaration.
-     *
      * @var CapturePaymentHandler
      */
     private $capturePaymentHandler;
 
     /**
-     * Refund Payment Variable Declaration.
-     *
      * @var RefundPaymentHandler
      */
     private $refundPaymentHandler;
 
     /**
-     * Renew Payment Variable Declaration.
-     *
      * @var RenewPaymentHandler
      */
     private $renewPaymentHandler;
 
     /**
-     * Module Main Class Variable Declaration.
-     *
      * @var \ViaBill
      */
     private $module;
 
     /**
-     * Logger Factory Variable Declaration.
-     *
      * @var LoggerFactory
      */
     private $loggerFactory;
 
-    /**
-     * PaymentManagementHandler constructor.
-     *
-     * @param \ViaBill $module
-     * @param LoggerFactory $loggerFactory
-     * @param CancelPaymentHandler $cancelPaymentHandler
-     * @param CapturePaymentHandler $capturePaymentHandler
-     * @param RefundPaymentHandler $refundPaymentHandler
-     * @param RenewPaymentHandler $renewPaymentHandler
-     */
     public function __construct(
         \ViaBill $module,
         LoggerFactory $loggerFactory,
@@ -122,7 +95,9 @@ class PaymentManagementHandler
 
         if (!$isOrderExists) {
             $errorMessage = sprintf(
-                $this->module->l('Order %s is not related with viaBill system.', self::FILENAME),
+                $this->module->l(
+                    'Order %s is not related to the ViaBill system.'
+                ),
                 $order->reference
             );
 
@@ -169,11 +144,14 @@ class PaymentManagementHandler
         $orderIds
     ) {
         if (empty($orderIds)) {
-            $context->controller->warnings[] =
-            sprintf(
-                $this->module->l('At least one %s order have to be selected in order to proceed.', self::FILENAME),
+            $context->controller->warnings[] = sprintf(
+                $this->module->l(
+                    'At least one %s order must be selected in order to proceed.'
+                ),
                 $this->module->displayName
             );
+
+            return;
         }
 
         $orders = $this->getOrders($orderIds);
@@ -194,7 +172,6 @@ class PaymentManagementHandler
 
                 $totalCaptured = $capture->getTotalCaptured();
                 $totalRefunded = $refund->getTotalRefunded();
-
                 $refundRemaining = $totalCaptured - $totalRefunded;
 
                 $amount = $refundRemaining;
@@ -206,7 +183,9 @@ class PaymentManagementHandler
 
             if (!empty($errors)) {
                 $errorMessage = sprintf(
-                    $this->module->l('%s operation failed for order %s', self::FILENAME),
+                    $this->module->l(
+                        '%s operation failed for order %s.'
+                    ),
                     $operationName,
                     $order->reference
                 );
@@ -222,10 +201,13 @@ class PaymentManagementHandler
 
             if (!empty($warnings)) {
                 $warningMessage = sprintf(
-                    $this->module->l('%s operation has warnings for order %s', self::FILENAME),
+                    $this->module->l(
+                        '%s operation produced warnings for order %s.'
+                    ),
                     $operationName,
                     $order->reference
                 );
+
                 $allWarnings[] = $warningMessage;
                 $logger->warning(
                     $warningMessage,
@@ -237,8 +219,12 @@ class PaymentManagementHandler
         }
 
         if (empty($allWarnings) && empty($allErrors)) {
-            $context->controller->confirmations[] =
-                sprintf($this->module->l('%s operation is completed', self::FILENAME), $operationName);
+            $context->controller->confirmations[] = sprintf(
+                $this->module->l(
+                    '%s operation completed successfully.'
+                ),
+                $operationName
+            );
 
             return;
         }
@@ -260,6 +246,7 @@ class PaymentManagementHandler
     private function getOrders(array $orderIds)
     {
         $result = [];
+
         foreach ($orderIds as $id) {
             $order = new Order($id);
 
@@ -285,15 +272,21 @@ class PaymentManagementHandler
     private function getOperationName($isCancel, $isRefund, $isCapture)
     {
         if ($isCancel) {
-            return $this->module->l('Cancel', self::FILENAME);
+            return $this->module->l(
+                'Cancel'
+            );
         }
 
         if ($isRefund) {
-            return $this->module->l('Refund', self::FILENAME);
+            return $this->module->l(
+                'Refund'
+            );
         }
 
         if ($isCapture) {
-            return $this->module->l('Capture', self::FILENAME);
+            return $this->module->l(
+                'Capture'
+            );
         }
 
         return '';

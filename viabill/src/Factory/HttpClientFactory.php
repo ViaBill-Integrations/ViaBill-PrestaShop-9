@@ -11,58 +11,30 @@
 
 namespace ViaBill\Factory;
 
-use GuzzleHttp\Client;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use ViaBill\Config\Config;
 
-/**
- * Class HttpClientFactory
- */
 class HttpClientFactory
 {
-    /**
-     * Config Variable Declaration.
-     *
-     * @var Config
-     */
-    private $config;
+    private Config $config;
 
-    /**
-     * HttpClientFactory constructor.
-     *
-     * @param Config $config
-     */
     public function __construct(Config $config)
     {
         $this->config = $config;
     }
 
-    /**
-     * Gets Guzzle HTTP Client.
-     *
-     * @return Client
-     */
-    public function getClient()
+    public function getClient(): HttpClientInterface
     {
-        if (Config::isVersionAbove8()) {
-            $config = [
-                'base_uri' => $this->config->getBaseUrl(),            
+        return HttpClient::createForBaseUri(
+            $this->config->getBaseUrl(),
+            [
                 'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
                 ],
-            ];
-        } else {
-            $config = [
-                'base_url' => $this->config->getBaseUrl(),
-                'defaults' => [
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                        'Accept' => 'application/json',
-                    ],
-                ],
-            ];
-        }
-        
-        return new Client($config);
+                'timeout' => 30,
+            ]
+        );
     }
 }

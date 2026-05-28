@@ -108,7 +108,7 @@ class ViaBillCallBackModuleFrontController extends ModuleFrontController
                     ' $_POST=' . var_export($_POST, true) .
                     ' $_GET='  . var_export($_GET, true)
                 );
-                $this->ajaxDie('ERROR'); // or keep your current behavior
+                $this->ajaxResponse('ERROR'); // or keep your current behavior
             }
 
             // 6) Deserialize using normalized JSON
@@ -147,7 +147,7 @@ class ViaBillCallBackModuleFrontController extends ModuleFrontController
             $raw_request = print_r($_REQUEST, true);
             DebugLog::msg('Callback postProcess / [error msg: '.$exc_msg.'][content: '.$debug_str.'][raw request: '.$raw_request.']');
 
-            $this->ajaxDie('ERROR');
+            $this->ajaxResponse('ERROR');
         }        
 
         /**
@@ -156,7 +156,7 @@ class ViaBillCallBackModuleFrontController extends ModuleFrontController
         $orderValidator = $this->module->getModuleContainer()->get('service.validator.order.callBack');
 
         if (!$orderValidator->validate($callBackResponse)) {
-            $this->ajaxDie('NOT VALID ORDER');
+            $this->ajaxResponse('NOT VALID ORDER');
         }
 
         /**
@@ -165,6 +165,11 @@ class ViaBillCallBackModuleFrontController extends ModuleFrontController
         $orderStatusService = $this->module->getModuleContainer()->get('service.order.orderStatus');
         $orderStatusService->changeOrderStatusByCallBack($callBackResponse);
 
-        $this->ajaxDie('FINISHED');
+        $this->ajaxResponse('FINISHED');
+    }
+
+    public function ajaxResponse($data)
+    {
+        die(is_string($data) ? $data : Tools::jsonEncode($data));
     }
 }

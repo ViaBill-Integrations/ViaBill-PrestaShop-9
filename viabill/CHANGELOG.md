@@ -289,5 +289,13 @@
 - Revised the checkout request.
 
 ### Changed
-## [9.1.2] - 2026-05-1
+## [9.1.2] - 2026-05-12
 - Update the composer.json to explicitly specify the Guzzle client.
+
+### Changed
+## [9.1.3] - 2026-05-14
+- Updated the translation methods.
+
+### Changed
+## [9.1.4] - 2026-05-28
+- Modernize the HTTP calls.

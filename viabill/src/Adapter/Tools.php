@@ -1,13 +1,13 @@
 <?php
 /**
-* NOTICE OF LICENSE
-*
-* @author    Written for or by ViaBill
-* @copyright Copyright (c) Viabill
-* @license   Addons PrestaShop license limitation
-*
-* @see       /LICENSE
-*/
+ * NOTICE OF LICENSE
+ *
+ * @author    Written for or by ViaBill
+ * @copyright Copyright (c) Viabill
+ * @license   Addons PrestaShop license limitation
+ *
+ * @see       /LICENSE
+ */
 
 namespace ViaBill\Adapter;
 
@@ -29,7 +29,7 @@ class Tools
     }
 
     /**
-     * Checks If Link Is Submited.
+     * Checks If Link Is Submitted.
      *
      * @param string $link
      *
@@ -87,7 +87,7 @@ class Tools
     }
 
     /**
-     * Allows To Get The Tontent From Either A URL Or A Local File.
+     * Allows To Get The Content From Either A URL Or A Local File.
      *
      * @param string $url
      *
@@ -101,25 +101,33 @@ class Tools
     /**
      * Formats Number.
      *
-     * @param float $number
+     * @param float|int|string $number
      *
      * @return string
      */
     public function displayNumber($number)
     {
-        return \Tools::displayNumber($number);
+        return \Context::getContext()->currentLocale->formatNumber($number);
     }
 
     /**
      * Return Price With Currency Sign For A Given Product.
      *
      * @param float $amount
-     * @param null $currency
+     * @param mixed $currency
      *
      * @return string
      */
     public function displayPrice($amount, $currency = null)
     {
-        return \Tools::displayPrice($amount, $currency);
+        if ($currency === null) {
+            $currency = \Context::getContext()->currency;
+        }
+
+        $currencyCode = is_object($currency) && isset($currency->iso_code)
+            ? $currency->iso_code
+            : \Context::getContext()->currency->iso_code;
+
+        return \Context::getContext()->currentLocale->formatPrice($amount, $currencyCode);
     }
 }
