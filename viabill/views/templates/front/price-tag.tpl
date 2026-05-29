@@ -9,7 +9,7 @@
 *}
 
 {if $dynamicPriceTrigger}
-    <input type="hidden" id="{$dynamicPriceTrigger}">
+    <input type="hidden" id="{$dynamicPriceTrigger|replace:'#':''}">
 {/if}
 
 <div

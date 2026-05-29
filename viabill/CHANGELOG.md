@@ -299,3 +299,7 @@
 ### Changed
 ## [9.1.4] - 2026-05-28
 - Modernize the HTTP calls.
+
+### Changed
+## [9.1.5] - 2026-05-28
+- Updated PriceTag Trigger selection.
