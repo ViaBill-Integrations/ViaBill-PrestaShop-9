@@ -91,7 +91,7 @@ class Tab
             ],
             [
                 'name' => $this->module->l(
-                    'Authentication'
+                    'Account Credentials'
                 ),
                 'ParentClassName' => $this->controllerInvisibleName,
                 'class_name' => $this->controllerAuthenticationName,
