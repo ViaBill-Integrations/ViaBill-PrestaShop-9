@@ -74,7 +74,7 @@ class RenewPaymentHandler
      */
     public function handle(Order $order)
     {
-        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : DebugLog::export($order);
         DebugLog::msg("Renew Payment Handle / Order: $debug_str", 'notice');
 
         $reference = $order->reference;
@@ -105,7 +105,7 @@ class RenewPaymentHandler
                 $errors[] = $error->getError();
             }
 
-            $debug_str = var_export($apiErrors, true);
+            $debug_str = DebugLog::export($apiErrors);
             DebugLog::msg("Renew Payment Handle / Response Errors: $debug_str", 'error');
         }
 

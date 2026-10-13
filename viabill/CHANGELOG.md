@@ -307,6 +307,12 @@
 ## [9.2.1]
 - Replaced account registration and login with the new account credentials form.
 
+## [9.2.2]
+- Added the sign-up url, under the viabill account credentials form.
+
+## [9.2.3]
+- Fixed a token validation issue in the presense of multiple viabill payments providers.
+
 ### Changed
 - Merchants no longer register or log in through the ViaBill server to retrieve their credentials. The API key, API secret and PriceTag script are now entered manually, either on the "ViaBill Account Credentials" page (former Authentication page) or in the new "ViaBill Account Credentials" section at the top of the ViaBill Settings page.
 - The API secret is rendered as a masked password field and is never printed back to the page; leaving it empty keeps the currently stored secret.

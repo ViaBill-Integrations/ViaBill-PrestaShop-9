@@ -62,7 +62,7 @@ class ViaBillReturnModuleFrontController extends ModuleFrontController
         $debug_str = '[Order id: ' . $orderId . ']';
         $approved_str = ($isOrderApproved) ? '[approved]' : '[not approved]';
         $debug_str .= $approved_str;
-        $order_str = (empty($order)) ? 'empty' : var_export($order, true);
+        $order_str = (empty($order)) ? 'empty' : DebugLog::export($order);
         $debug_str .= "[order: {$order_str}]";
         DebugLog::msg('Return processPost / ' . $debug_str);
 

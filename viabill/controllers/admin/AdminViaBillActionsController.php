@@ -9,6 +9,7 @@
 * @see       /LICENSE
 */
 
+use ViaBill\Config\Config;
 use ViaBill\Util\NumberUtility;
 
 /**
@@ -51,12 +52,32 @@ class AdminViaBillActionsController extends ModuleAdminController
      */
     private function capturePostProcess()
     {
+        $isAction = Tools::isSubmit('capturePayment') ||
+            Tools::isSubmit('refundPayment') ||
+            Tools::isSubmit('cancelPayment') ||
+            Tools::isSubmit('renewPayment');
+
+        // Payment actions change money flows: only accept them as POST
+        // requests carrying a valid back office token. The core check is
+        // used because, depending on the PrestaShop version and the
+        // "token in URLs" setting, the token is the legacy 'token' parameter,
+        // the Symfony '_token' parameter or absent.
+        if ($isAction && (
+            !isset($_SERVER['REQUEST_METHOD']) ||
+            strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST' ||
+            !$this->checkToken()
+        )) {
+            $this->errors[] = $this->l('Form token mismatch detected.');
+
+            return;
+        }
+
         /** @var \ViaBill\Service\Handler\PaymentManagementHandler $paymentHandler */
         /** @var \ViaBill\Service\MessageService $messageService */
         $paymentHandler = $this->module->getModuleContainer()->get('service.handler.paymentManagement');
         $messageService = $this->module->getModuleContainer()->get('service.message');
 
-        $order = new Order(Tools::getValue('id_order'));
+        $order = new Order((int) Tools::getValue('id_order'));
 
         $isCapture = Tools::isSubmit('capturePayment');
         $isRefund = Tools::isSubmit('refundPayment');

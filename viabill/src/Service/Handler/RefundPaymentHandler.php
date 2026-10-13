@@ -90,13 +90,13 @@ class RefundPaymentHandler
 
     public function handle(Order $order, $amount)
     {
-        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : DebugLog::export($order);
         DebugLog::msg("Refund Payment Handle / Amount: $amount Order: $debug_str", 'notice');
 
         $errors = $this->validateRefundPayment($order, $amount);
 
         if (!empty($errors)) {
-            $debug_str = var_export($errors, true);
+            $debug_str = DebugLog::export($errors);
             DebugLog::msg("Refund Payment Handle / Validation Errors: $debug_str", 'error');
 
             return new HandlerResponse($order, 500, $errors);
@@ -137,7 +137,7 @@ class RefundPaymentHandler
         }
 
         if (!empty($responseErrors)) {
-            $debug_str = var_export($responseErrors, true);
+            $debug_str = DebugLog::export($responseErrors);
             DebugLog::msg("Refund Payment Handle / Response Errors: $debug_str", 'error');
         }
 
@@ -164,13 +164,13 @@ class RefundPaymentHandler
 
         $debug_str = '';
         if (!empty($successMessage)) {
-            $debug_str .= '[Message: ' . var_export($successMessage, true) . ']';
+            $debug_str .= '[Message: ' . DebugLog::export($successMessage) . ']';
         }
         if (!empty($errors)) {
-            $debug_str .= '[Errors: ' . var_export($errors, true) . ']';
+            $debug_str .= '[Errors: ' . DebugLog::export($errors) . ']';
         }
         if (!empty($warnings)) {
-            $debug_str .= '[Warnings: ' . var_export($warnings, true) . ']';
+            $debug_str .= '[Warnings: ' . DebugLog::export($warnings) . ']';
         }
         $debug_str .= method_exists($refundResponse, 'getStatusCode')
             ? '[Status code: ' . $refundResponse->getStatusCode() . ']'

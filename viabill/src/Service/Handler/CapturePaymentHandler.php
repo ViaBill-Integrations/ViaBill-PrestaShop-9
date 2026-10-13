@@ -103,13 +103,13 @@ class CapturePaymentHandler
      */
     public function handle(Order $order, $amount)
     {
-        $debug_str = empty($order) ? 'Order is empty' : var_export($order, true);
+        $debug_str = empty($order) ? 'Order is empty' : DebugLog::export($order);
         DebugLog::msg("Capture Payment Handle / Amount: $amount Order: $debug_str", 'notice');
 
         $errors = $this->validateCapturePayment($order, $amount);
 
         if (!empty($errors)) {
-            $debug_str = var_export($errors, true);
+            $debug_str = DebugLog::export($errors);
             DebugLog::msg("Capture Payment Handle / Validation Errors: $debug_str", 'error');
 
             return new HandlerResponse($order, 500, $errors);
@@ -138,7 +138,7 @@ class CapturePaymentHandler
             DebugLog::msg("Capture Payment Handle / Request params: $debug_str", 'notice');
         } catch (\Exception $exception) {
             $er = $exception->getMessage();
-            $debug_str = var_export($er, true);
+            $debug_str = DebugLog::export($er);
             DebugLog::msg("Capture Payment Handle / Request exception: $debug_str", 'error');
         }
 
@@ -154,7 +154,7 @@ class CapturePaymentHandler
         $responseErrors = $captureResponse->getErrors();
 
         if (!empty($responseErrors)) {
-            $debug_str = var_export($responseErrors, true);
+            $debug_str = DebugLog::export($responseErrors);
             DebugLog::msg("Capture Payment Handle / Response Errors: $debug_str", 'error');
         }
 
@@ -186,13 +186,13 @@ class CapturePaymentHandler
 
         $debug_str = '';
         if (!empty($message)) {
-            $debug_str .= '[Message: ' . var_export($message, true) . ']';
+            $debug_str .= '[Message: ' . DebugLog::export($message) . ']';
         }
         if (!empty($errors)) {
-            $debug_str .= '[Errors: ' . var_export($errors, true) . ']';
+            $debug_str .= '[Errors: ' . DebugLog::export($errors) . ']';
         }
         if (!empty($warnings)) {
-            $debug_str .= '[Warnings: ' . var_export($warnings, true) . ']';
+            $debug_str .= '[Warnings: ' . DebugLog::export($warnings) . ']';
         }
         $debug_str .= method_exists($captureResponse, 'getStatusCode')
             ? '[Status code: ' . $captureResponse->getStatusCode() . ']'

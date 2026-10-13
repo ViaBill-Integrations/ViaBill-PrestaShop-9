@@ -33,7 +33,13 @@ class HttpClientFactory
                     'Content-Type'  => 'application/json',
                     'Accept'        => 'application/json',
                 ],
+                // Idle timeout, plus a hard limit for the whole request: the
+                // ViaBill API is called during checkout and must never hang it.
                 'timeout' => 30,
+                'max_duration' => 60,
+                // Always verify the ViaBill TLS certificate.
+                'verify_peer' => true,
+                'verify_host' => true,
             ]
         );
     }

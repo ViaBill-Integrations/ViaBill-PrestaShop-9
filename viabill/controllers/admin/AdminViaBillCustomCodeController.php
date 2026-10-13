@@ -53,6 +53,12 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
      */
     public function initContent()
     {
+        if (!Config::isSuperAdmin($this->context->employee)) {
+            $this->errors[] = $this->l('Only employees with the SuperAdmin profile can manage custom CSS and JavaScript code.');
+
+            return parent::initContent();
+        }
+
         $this->content = $this->renderView() . $this->renderForm();
 
         return parent::initContent();
@@ -68,6 +74,11 @@ class AdminViaBillCustomCodeController extends ModuleAdminController
         parent::postProcess();
 
         if (Tools::isSubmit('submitViaBillCustomCode')) {
+            // The code is injected unescaped into every storefront page.
+            if (!Config::isSuperAdmin($this->context->employee)) {
+                return;
+            }
+
             $customCSS = (string) Tools::getValue('VIABILL_CUSTOM_CSS');
             $customJS = (string) Tools::getValue('VIABILL_CUSTOM_JS');
 

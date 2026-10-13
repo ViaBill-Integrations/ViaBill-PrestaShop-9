@@ -94,7 +94,7 @@ class CancelPaymentHandler
         $errors = [];
         $isCancelled = false;
 
-        $debug_str = empty($order) ? '[empty]' : var_export($order, true);
+        $debug_str = empty($order) ? '[empty]' : DebugLog::export($order);
         DebugLog::msg("Cancel Payment Handle / Order: $debug_str", 'notice');
 
         try {
@@ -118,7 +118,7 @@ class CancelPaymentHandler
         }
 
         if (!empty($errors)) {
-            $debug_str = var_export($errors, true);
+            $debug_str = DebugLog::export($errors);
             DebugLog::msg("Cancel Payment Handle / Errors: $debug_str", 'error');
         }
 
@@ -134,7 +134,7 @@ class CancelPaymentHandler
             DebugLog::msg("Cancel Payment Handle / Request: $debug_str", 'notice');
         } catch (\Exception $exception) {
             $er = $exception->getMessage();
-            $debug_str = var_export($er, true);
+            $debug_str = DebugLog::export($er);
             DebugLog::msg("Cancel Payment Handle / Request errors: $debug_str", 'error');
         }
 
@@ -152,7 +152,7 @@ class CancelPaymentHandler
                 $errors[] = $error->getError();
             }
 
-            $debug_str = var_export($responseErrors, true);
+            $debug_str = DebugLog::export($responseErrors);
             DebugLog::msg("Cancel Payment Handle / Response Errors: $debug_str", 'error');
         } else {
             $debug_str = $response->getStatusCode();
