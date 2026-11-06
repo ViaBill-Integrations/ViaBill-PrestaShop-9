@@ -316,6 +316,8 @@
 ## [9.2.4]
 - Improved logging capabilities.
 
+## [9.2.5]
+- Added support for legal note.
 
 ### Changed
 - Merchants no longer register or log in through the ViaBill server to retrieve their credentials. The API key, API secret and PriceTag script are now entered manually, either on the "ViaBill Account Credentials" page (former Authentication page) or in the new "ViaBill Account Credentials" section at the top of the ViaBill Settings page.
